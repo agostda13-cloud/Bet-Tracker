@@ -52,12 +52,22 @@ const emptyLeg = {
 }
 
 type BetFormProps = {
-  mode: "create" | "edit"
+  mode: "create" | "edit" | "review"
   betId?: string
   defaultValues?: Partial<BetFormValues>
+  onConfirm?: (values: BetFormValues) => void
+  onDiscard?: () => void
+  confirmLabel?: string
 }
 
-export function BetForm({ mode, betId, defaultValues }: BetFormProps) {
+export function BetForm({
+  mode,
+  betId,
+  defaultValues,
+  onConfirm,
+  onDiscard,
+  confirmLabel,
+}: BetFormProps) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -90,6 +100,11 @@ export function BetForm({ mode, betId, defaultValues }: BetFormProps) {
   const status = watch("status")
 
   const onSubmit = async (values: BetFormValues) => {
+    if (mode === "review") {
+      onConfirm?.(values)
+      return
+    }
+
     setServerError(null)
     setIsSubmitting(true)
     const result =
@@ -342,11 +357,21 @@ export function BetForm({ mode, betId, defaultValues }: BetFormProps) {
       {serverError && <p className="text-destructive text-sm">{serverError}</p>}
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => router.back()}>
-          Cancel
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => (mode === "review" ? onDiscard?.() : router.back())}
+        >
+          {mode === "review" ? "Discard" : "Cancel"}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : mode === "create" ? "Create bet" : "Save changes"}
+          {mode === "review"
+            ? (confirmLabel ?? "Confirm")
+            : isSubmitting
+              ? "Saving..."
+              : mode === "create"
+                ? "Create bet"
+                : "Save changes"}
         </Button>
       </div>
     </form>
