@@ -38,68 +38,104 @@ export function BetsTable({ bets }: { bets: BetWithLegs[] }) {
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Placed</TableHead>
-          <TableHead>Sportsbook</TableHead>
-          <TableHead>Bet</TableHead>
-          <TableHead>Legs</TableHead>
-          <TableHead className="text-right">Stake</TableHead>
-          <TableHead className="text-right">Payout</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <>
+      {/* Mobile: stacked cards, so stake/payout/status are never scrolled off-screen */}
+      <div className="grid gap-2 sm:hidden">
         {bets.map((bet) => (
-          <TableRow key={bet.id} className="cursor-pointer">
-            <TableCell className="p-0">
-              <Link
-                href={`/bets/${bet.id}`}
-                className="block px-2 py-2 text-muted-foreground"
-              >
-                {new Date(bet.placedAt).toLocaleDateString()}
-              </Link>
-            </TableCell>
-            <TableCell className="p-0">
-              <Link href={`/bets/${bet.id}`} className="block px-2 py-2">
+          <Link
+            key={bet.id}
+            href={`/bets/${bet.id}`}
+            className="block rounded-lg border p-3"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground text-xs">
+                {new Date(bet.placedAt).toLocaleDateString()} ·{" "}
                 {sportsbookLabels[bet.sportsbook]}
-              </Link>
-            </TableCell>
-            <TableCell className="p-0 max-w-[280px]">
-              <Link
-                href={`/bets/${bet.id}`}
-                className="block truncate px-2 py-2"
-                title={betTitle(bet)}
-              >
-                {betTitle(bet)}
-              </Link>
-            </TableCell>
-            <TableCell className="p-0">
-              <Link href={`/bets/${bet.id}`} className="block px-2 py-2">
-                {bet.legs.length}
-              </Link>
-            </TableCell>
-            <TableCell className="p-0 text-right">
-              <Link href={`/bets/${bet.id}`} className="block px-2 py-2">
+              </span>
+              <Badge variant={betStatusBadgeVariant[bet.status]}>
+                {betStatusLabels[bet.status]}
+              </Badge>
+            </div>
+            <p className="mt-1 truncate font-medium">{betTitle(bet)}</p>
+            <div className="mt-1 flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                {bet.legs.length} leg{bet.legs.length === 1 ? "" : "s"} · stake{" "}
                 {formatCurrency(bet.stake)}
-              </Link>
-            </TableCell>
-            <TableCell className="p-0 text-right">
-              <Link href={`/bets/${bet.id}`} className="block px-2 py-2">
+              </span>
+              <span className="font-medium tabular-nums">
                 {formatCurrency(bet.actualPayout ?? bet.potentialPayout)}
-              </Link>
-            </TableCell>
-            <TableCell className="p-0">
-              <Link href={`/bets/${bet.id}`} className="block px-2 py-2">
-                <Badge variant={betStatusBadgeVariant[bet.status]}>
-                  {betStatusLabels[bet.status]}
-                </Badge>
-              </Link>
-            </TableCell>
-          </TableRow>
+              </span>
+            </div>
+          </Link>
         ))}
-      </TableBody>
-    </Table>
+      </div>
+
+      {/* Desktop: full table */}
+      <div className="hidden sm:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Placed</TableHead>
+              <TableHead>Sportsbook</TableHead>
+              <TableHead>Bet</TableHead>
+              <TableHead>Legs</TableHead>
+              <TableHead className="text-right">Stake</TableHead>
+              <TableHead className="text-right">Payout</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {bets.map((bet) => (
+              <TableRow key={bet.id} className="cursor-pointer">
+                <TableCell className="p-0">
+                  <Link
+                    href={`/bets/${bet.id}`}
+                    className="block px-2 py-2 text-muted-foreground"
+                  >
+                    {new Date(bet.placedAt).toLocaleDateString()}
+                  </Link>
+                </TableCell>
+                <TableCell className="p-0">
+                  <Link href={`/bets/${bet.id}`} className="block px-2 py-2">
+                    {sportsbookLabels[bet.sportsbook]}
+                  </Link>
+                </TableCell>
+                <TableCell className="p-0 max-w-[280px]">
+                  <Link
+                    href={`/bets/${bet.id}`}
+                    className="block truncate px-2 py-2"
+                    title={betTitle(bet)}
+                  >
+                    {betTitle(bet)}
+                  </Link>
+                </TableCell>
+                <TableCell className="p-0">
+                  <Link href={`/bets/${bet.id}`} className="block px-2 py-2">
+                    {bet.legs.length}
+                  </Link>
+                </TableCell>
+                <TableCell className="p-0 text-right">
+                  <Link href={`/bets/${bet.id}`} className="block px-2 py-2">
+                    {formatCurrency(bet.stake)}
+                  </Link>
+                </TableCell>
+                <TableCell className="p-0 text-right">
+                  <Link href={`/bets/${bet.id}`} className="block px-2 py-2">
+                    {formatCurrency(bet.actualPayout ?? bet.potentialPayout)}
+                  </Link>
+                </TableCell>
+                <TableCell className="p-0">
+                  <Link href={`/bets/${bet.id}`} className="block px-2 py-2">
+                    <Badge variant={betStatusBadgeVariant[bet.status]}>
+                      {betStatusLabels[bet.status]}
+                    </Badge>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   )
 }
