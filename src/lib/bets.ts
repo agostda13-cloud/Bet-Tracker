@@ -1,5 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client"
 import { prisma } from "@/lib/prisma"
+import type { StatBet } from "@/lib/stats"
 
 export type BetFilters = {
   sportsbook?: string
@@ -61,6 +62,37 @@ export async function getBetById(userId: string, id: string) {
     where: { id, userId },
     include: { legs: { orderBy: { sortOrder: "asc" } } },
   })
+}
+
+export async function getStatBets(
+  userId: string,
+  filters: BetFilters = {}
+): Promise<StatBet[]> {
+  const bets = await prisma.bet.findMany({
+    where: buildBetWhere(userId, filters),
+    select: {
+      id: true,
+      stake: true,
+      actualPayout: true,
+      potentialPayout: true,
+      status: true,
+      sportsbook: true,
+      sport: true,
+      placedAt: true,
+    },
+    orderBy: { placedAt: "desc" },
+  })
+
+  return bets.map((bet) => ({
+    id: bet.id,
+    stake: Number(bet.stake),
+    actualPayout: bet.actualPayout ? Number(bet.actualPayout) : null,
+    potentialPayout: Number(bet.potentialPayout),
+    status: bet.status,
+    sportsbook: bet.sportsbook,
+    sport: bet.sport,
+    placedAt: bet.placedAt,
+  }))
 }
 
 export async function getDistinctSports(userId: string) {
