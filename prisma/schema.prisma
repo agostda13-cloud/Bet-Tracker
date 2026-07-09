@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Sportsbook {
+  HARDROCK
+  DK_PREDICTIONS
+  PRIZEPICKS
+  OTHER
+}
+
+enum BetStatus {
+  PENDING
+  WON
+  LOST
+  PUSH
+  CASHOUT
+  VOID
+}
+
+enum LegStatus {
+  PENDING
+  WON
+  LOST
+  PUSH
+  VOID
+}
+
+enum SourceType {
+  MANUAL
+  SCREENSHOT
+  CSV
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  bets         Bet[]
+}
+
+model Bet {
+  id               String     @id @default(cuid())
+  userId           String
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sportsbook       Sportsbook
+  stake            Decimal    @db.Decimal(10, 2)
+  oddsAmerican     Int?
+  multiplier       Decimal?   @db.Decimal(10, 3)
+  potentialPayout  Decimal    @db.Decimal(10, 2)
+  actualPayout     Decimal?   @db.Decimal(10, 2)
+  status           BetStatus  @default(PENDING)
+  placedAt         DateTime
+  settledAt        DateTime?
+  sport            String?
+  notes            String?
+  sourceType       SourceType @default(MANUAL)
+  rawImportData    Json?
+  legs             BetLeg[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([userId, placedAt])
+  @@index([userId, status])
+  @@index([userId, sportsbook])
+}
+
+model BetLeg {
+  id          String    @id @default(cuid())
+  betId       String
+  bet         Bet       @relation(fields: [betId], references: [id], onDelete: Cascade)
+  sortOrder   Int        @default(0)
+  description String
+  player      String?
+  team        String?
+  propType    String?
+  line        Decimal?  @db.Decimal(10, 2)
+  selection   String?
+  odds        Int?
+  status      LegStatus @default(PENDING)
+
+  @@index([betId])
+}
