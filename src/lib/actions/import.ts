@@ -71,7 +71,8 @@ export async function parseScreenshots(
 }
 
 export async function commitImportedBets(
-  items: { values: BetFormValues; raw?: unknown }[]
+  items: { values: BetFormValues; raw?: unknown }[],
+  sourceType: "SCREENSHOT" | "CSV" = "SCREENSHOT"
 ): Promise<{ count: number } | { error: string }> {
   const session = await auth()
   if (!session?.user?.id) return { error: "Not authenticated" }
@@ -101,7 +102,7 @@ export async function commitImportedBets(
           settledAt: values.settledAt ? new Date(values.settledAt) : null,
           sport: values.sport || null,
           notes: values.notes || null,
-          sourceType: "SCREENSHOT",
+          sourceType,
           rawImportData: item.raw ? JSON.parse(JSON.stringify(item.raw)) : undefined,
           legs: {
             create: values.legs.map((leg, index) => ({
